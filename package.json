@@ -1,0 +1,13 @@
+{
+  "name": "personal-portfolio-website-template",
+  "version": "1.0.0",
+  "description": "Pigra - Personal Portfolio Website Template",
+  "scripts": {
+    "dev": "http-server -p 3000 -c-1",
+    "format": "prettier --write \"**/*.{html,css,js,scss,json,md}\""
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "prettier": "^3.1.0"
+  }
+}

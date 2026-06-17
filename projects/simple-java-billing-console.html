@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Java Billing Console - Demo</title>
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Inter:wght@300..800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- FontAwesome icons -->
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+    />
+    <!-- Custom CSS -->
+    <style>
+      :root {
+        --bg-color: #0b0f19;
+        --card-bg: #111827;
+        --border-color: #1f2937;
+        --primary-color: #10b981;
+        --primary-hover: #059669;
+        --text-color: #e5e7eb;
+        --text-muted: #9ca3af;
+        --terminal-bg: #030712;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: "Inter", sans-serif;
+        padding: 24px;
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .header {
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .title-section h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 4px;
+      }
+
+      .title-section p {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+      }
+
+      .github-btn {
+        background-color: #1f2937;
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s;
+      }
+
+      .github-btn:hover {
+        background-color: #374151;
+        border-color: #4b5563;
+      }
+
+      /* Terminal Styles */
+      .terminal-window {
+        background-color: var(--terminal-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        height: 480px;
+      }
+
+      .terminal-titlebar {
+        background-color: #111827;
+        height: 40px;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        position: relative;
+      }
+
+      .terminal-dots {
+        display: flex;
+        gap: 6px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .dot.red {
+        background-color: #ef4444;
+      }
+      .dot.yellow {
+        background-color: #f59e0b;
+      }
+      .dot.green {
+        background-color: #10b981;
+      }
+
+      .terminal-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        font-family: "Fira Code", monospace;
+      }
+
+      .terminal-body {
+        flex: 1;
+        padding: 20px;
+        font-family: "Fira Code", monospace;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        overflow-y: auto;
+        color: #fff;
+      }
+
+      .cmd-input-line {
+        display: flex;
+        align-items: center;
+      }
+
+      .cmd-prompt {
+        color: #10b981;
+        margin-right: 8px;
+        font-weight: bold;
+      }
+
+      .cmd-cursor {
+        display: inline-block;
+        width: 8px;
+        height: 15px;
+        background-color: #10b981;
+        animation: blink 1s infinite;
+        vertical-align: middle;
+        margin-left: 2px;
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      .output-success {
+        color: #10b981;
+      }
+
+      .output-error {
+        color: #ef4444;
+      }
+
+      .output-warning {
+        color: #f59e0b;
+      }
+
+      .output-highlight {
+        color: #60a5fa;
+      }
+
+      .controls {
+        margin-top: 16px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+
+      .btn-control {
+        background-color: var(--primary-color);
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background-color 0.2s;
+      }
+
+      .btn-control:hover {
+        background-color: var(--primary-hover);
+      }
+
+      .btn-control.secondary {
+        background-color: #1f2937;
+        border: 1px solid var(--border-color);
+      }
+
+      .btn-control.secondary:hover {
+        background-color: #374151;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="title-section">
+          <h1>Supermarket Billing Console</h1>
+          <p>Java Console Application &bull; Interactive CLI Simulation</p>
+        </div>
+        <a
+          href="https://github.com/MANOJ7263/simple-java-billing-console"
+          target="_blank"
+          class="github-btn"
+        >
+          <i class="fab fa-github"></i> View Source Code
+        </a>
+      </div>
+
+      <div class="terminal-window">
+        <div class="terminal-titlebar">
+          <div class="terminal-dots">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+          </div>
+          <div class="terminal-title">manoj@java-billing-system: ~</div>
+        </div>
+        <div class="terminal-body" id="terminalBody">
+          <div class="cmd-input-line" id="initialPrompt">
+            <span class="cmd-prompt"
+              >java -jar SupermarketBilling.jar --cli</span
+            >
+            <span class="cmd-cursor"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn-control secondary" id="resetBtn" disabled>
+          <i class="fas fa-redo"></i> Reset
+        </button>
+        <button class="btn-control" id="runBtn">
+          <i class="fas fa-play"></i> Run Simulation
+        </button>
+      </div>
+    </div>
+
+    <!-- Script to simulate Java CLI billing console -->
+    <script>
+      const terminal = document.getElementById("terminalBody");
+      const runBtn = document.getElementById("runBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      let activeTimers = [];
+
+      const simulationSteps = [
+        {
+          delay: 1000,
+          type: "output",
+          text: "Initializing database connection...",
+        },
+        {
+          delay: 600,
+          type: "output",
+          text: "Database connection successful.",
+          class: "output-success",
+        },
+        { delay: 400, type: "output", text: "Loading product services..." },
+        {
+          delay: 500,
+          type: "output",
+          text: "Loading billing configuration...",
+        },
+        { delay: 300, type: "output", text: "" },
+        {
+          delay: 100,
+          type: "output",
+          text: "=============================================",
+          class: "output-highlight",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "      SUPERMARKET BILLING SYSTEM - MAIN      ",
+          class: "output-highlight",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "=============================================",
+          class: "output-highlight",
+        },
+        { delay: 100, type: "output", text: "1. Manage Products (CRUD)" },
+        { delay: 100, type: "output", text: "2. Manage Inventory/Stock" },
+        { delay: 100, type: "output", text: "3. Create New Bill (Billing)" },
+        { delay: 100, type: "output", text: "4. Sales History & Reports" },
+        { delay: 100, type: "output", text: "5. Exit" },
+        {
+          delay: 100,
+          type: "output",
+          text: "=============================================",
+          class: "output-highlight",
+        },
+        {
+          delay: 800,
+          type: "prompt",
+          prompt: "Enter your choice: ",
+          typed: "3",
+        },
+        { delay: 800, type: "output", text: "" },
+        {
+          delay: 100,
+          type: "output",
+          text: "=============================================",
+          class: "output-highlight",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "            STARTING NEW TRANSACTION         ",
+          class: "output-highlight",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "=============================================",
+          class: "output-highlight",
+        },
+        { delay: 300, type: "output", text: "" },
+        { delay: 100, type: "output", text: "Current Bill Summary:" },
+        {
+          delay: 100,
+          type: "output",
+          text: "[No items added yet]",
+          class: "output-warning",
+        },
+        { delay: 200, type: "output", text: "" },
+        { delay: 100, type: "output", text: "Options:" },
+        { delay: 100, type: "output", text: "1. Add Product to Bill" },
+        {
+          delay: 100,
+          type: "output",
+          text: "2. Remove Product from Bill List",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "3. Complete and Generate Bill (Checkout)",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "4. Cancel Transaction and Discard",
+        },
+        { delay: 800, type: "prompt", prompt: "Enter option: ", typed: "1" },
+        {
+          delay: 600,
+          type: "prompt",
+          prompt: "Enter Product ID to add: ",
+          typed: "101",
+        },
+        {
+          delay: 400,
+          type: "output",
+          text: "Product: Dark Roast Coffee | Price: $4.99 | Available Stock: 45",
+          class: "output-success",
+        },
+        {
+          delay: 800,
+          type: "prompt",
+          prompt: "Enter quantity to purchase: ",
+          typed: "2",
+        },
+        { delay: 400, type: "output", text: "Added to cart." },
+        { delay: 600, type: "output", text: "" },
+        { delay: 100, type: "output", text: "Current Bill Summary:" },
+        {
+          delay: 100,
+          type: "output",
+          text: "ID    Name                 Qty   Price    Subtotal",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "---------------------------------------------------------",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "101   Dark Roast Coffee    2     $4.99    $9.98",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "---------------------------------------------------------",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "Total: $9.98",
+          class: "output-success",
+        },
+        { delay: 400, type: "output", text: "" },
+        { delay: 100, type: "output", text: "Options:" },
+        { delay: 100, type: "output", text: "1. Add Product to Bill" },
+        {
+          delay: 100,
+          type: "output",
+          text: "2. Remove Product from Bill List",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "3. Complete and Generate Bill (Checkout)",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "4. Cancel Transaction and Discard",
+        },
+        { delay: 800, type: "prompt", prompt: "Enter option: ", typed: "1" },
+        {
+          delay: 600,
+          type: "prompt",
+          prompt: "Enter Product ID to add: ",
+          typed: "105",
+        },
+        {
+          delay: 400,
+          type: "output",
+          text: "Product: Organic Milk 1L | Price: $3.49 | Available Stock: 18",
+          class: "output-success",
+        },
+        {
+          delay: 800,
+          type: "prompt",
+          prompt: "Enter quantity to purchase: ",
+          typed: "1",
+        },
+        { delay: 400, type: "output", text: "Added to cart." },
+        { delay: 600, type: "output", text: "" },
+        { delay: 100, type: "output", text: "Current Bill Summary:" },
+        {
+          delay: 100,
+          type: "output",
+          text: "ID    Name                 Qty   Price    Subtotal",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "---------------------------------------------------------",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "101   Dark Roast Coffee    2     $4.99    $9.98",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "105   Organic Milk 1L      1     $3.49    $3.49",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "---------------------------------------------------------",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "Total: $13.47",
+          class: "output-success",
+        },
+        { delay: 400, type: "output", text: "" },
+        { delay: 100, type: "output", text: "Options:" },
+        { delay: 100, type: "output", text: "1. Add Product to Bill" },
+        {
+          delay: 100,
+          type: "output",
+          text: "2. Remove Product from Bill List",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "3. Complete and Generate Bill (Checkout)",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "4. Cancel Transaction and Discard",
+        },
+        { delay: 800, type: "prompt", prompt: "Enter option: ", typed: "3" },
+        {
+          delay: 800,
+          type: "prompt",
+          prompt: "Confirm checkout (Y/N): ",
+          typed: "Y",
+        },
+        { delay: 800, type: "output", text: "" },
+        {
+          delay: 100,
+          type: "output",
+          text: "Transaction successful!",
+          class: "output-success",
+        },
+        { delay: 100, type: "output", text: "" },
+        {
+          delay: 50,
+          type: "output",
+          text: "=========================================================",
+          class: "output-highlight",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "                      TAX RECEIPT                        ",
+          class: "output-highlight",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "=========================================================",
+          class: "output-highlight",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "Bill ID: #23094                        Date: 2026-06-17",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "---------------------------------------------------------",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "Item Name                 Qty      Price         Subtotal",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "---------------------------------------------------------",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "Dark Roast Coffee          2       $4.99            $9.98",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "Organic Milk 1L            1       $3.49            $3.49",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "---------------------------------------------------------",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "Subtotal:                                          $13.47",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "Tax (GST 5%):                                       $0.67",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "---------------------------------------------------------",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "GRAND TOTAL:                                       $14.14",
+          class: "output-success",
+        },
+        {
+          delay: 50,
+          type: "output",
+          text: "=========================================================",
+          class: "output-highlight",
+        },
+        { delay: 100, type: "output", text: "Thank you for shopping with us!" },
+        { delay: 1000, type: "output", text: "" },
+        {
+          delay: 100,
+          type: "output",
+          text: "=============================================",
+          class: "output-highlight",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "      SUPERMARKET BILLING SYSTEM - MAIN      ",
+          class: "output-highlight",
+        },
+        {
+          delay: 100,
+          type: "output",
+          text: "=============================================",
+          class: "output-highlight",
+        },
+        { delay: 100, type: "output", text: "1. Manage Products (CRUD)" },
+        { delay: 100, type: "output", text: "2. Manage Inventory/Stock" },
+        { delay: 100, type: "output", text: "3. Create New Bill (Billing)" },
+        { delay: 100, type: "output", text: "4. Sales History & Reports" },
+        { delay: 100, type: "output", text: "5. Exit" },
+        {
+          delay: 100,
+          type: "output",
+          text: "=============================================",
+          class: "output-highlight",
+        },
+        {
+          delay: 1000,
+          type: "prompt",
+          prompt: "Enter your choice: ",
+          typed: "5",
+        },
+        { delay: 500, type: "output", text: "" },
+        {
+          delay: 100,
+          type: "output",
+          text: "Exiting Supermarket Billing System. Goodbye!",
+        },
+        {
+          delay: 500,
+          type: "output",
+          text: "Process finished with exit code 0",
+        },
+      ];
+
+      function clearTimers() {
+        activeTimers.forEach(clearTimeout);
+        activeTimers = [];
+      }
+
+      function scrollToBottom() {
+        terminal.scrollTop = terminal.scrollHeight;
+      }
+
+      function appendOutput(text, className = "") {
+        const line = document.createElement("div");
+        if (className) line.className = className;
+        line.textContent = text;
+        terminal.appendChild(line);
+        scrollToBottom();
+      }
+
+      function appendPrompt(promptText, textToType, onDone) {
+        const line = document.createElement("div");
+        line.className = "cmd-input-line";
+
+        const promptSpan = document.createElement("span");
+        promptSpan.className = "cmd-prompt";
+        promptSpan.textContent = promptText;
+        line.appendChild(promptSpan);
+
+        const textSpan = document.createElement("span");
+        line.appendChild(textSpan);
+
+        const cursor = document.createElement("span");
+        cursor.className = "cmd-cursor";
+        line.appendChild(cursor);
+
+        terminal.appendChild(line);
+        scrollToBottom();
+
+        // Simulate typing character-by-character
+        let charIndex = 0;
+        function typeChar() {
+          if (charIndex < textToType.length) {
+            textSpan.textContent += textToType[charIndex];
+            charIndex++;
+            const timer = setTimeout(typeChar, 100 + Math.random() * 100);
+            activeTimers.push(timer);
+          } else {
+            // Remove cursor from this line when done typing
+            cursor.remove();
+            if (onDone) onDone();
+          }
+        }
+        typeChar();
+      }
+
+      function runSimulation() {
+        runBtn.disabled = true;
+        resetBtn.disabled = true;
+
+        // Remove blinking cursor from first prompt line
+        const cursor = document.querySelector("#initialPrompt .cmd-cursor");
+        if (cursor) cursor.remove();
+
+        let currentStep = 0;
+
+        function executeNextStep() {
+          if (currentStep >= simulationSteps.length) {
+            // End of simulation
+            runBtn.disabled = true;
+            resetBtn.disabled = false;
+            // Append final blinking cursor at bottom
+            const finalLine = document.createElement("div");
+            finalLine.className = "cmd-input-line";
+            const prompt = document.createElement("span");
+            prompt.className = "cmd-prompt";
+            prompt.textContent = "manoj@java-billing-system: ~ $ ";
+            finalLine.appendChild(prompt);
+            const cursor = document.createElement("span");
+            cursor.className = "cmd-cursor";
+            finalLine.appendChild(cursor);
+            terminal.appendChild(finalLine);
+            scrollToBottom();
+            return;
+          }
+
+          const step = simulationSteps[currentStep];
+          const timer = setTimeout(() => {
+            if (step.type === "output") {
+              appendOutput(step.text, step.class);
+              currentStep++;
+              executeNextStep();
+            } else if (step.type === "prompt") {
+              appendPrompt(step.prompt, step.typed, () => {
+                currentStep++;
+                executeNextStep();
+              });
+            }
+          }, step.delay);
+
+          activeTimers.push(timer);
+        }
+
+        executeNextStep();
+      }
+
+      runBtn.addEventListener("click", runSimulation);
+
+      resetBtn.addEventListener("click", () => {
+        clearTimers();
+        terminal.innerHTML = `
+          <div class="cmd-input-line" id="initialPrompt">
+            <span class="cmd-prompt">java -jar SupermarketBilling.jar --cli</span>
+            <span class="cmd-cursor"></span>
+          </div>
+        `;
+        runBtn.disabled = false;
+        resetBtn.disabled = true;
+      });
+    </script>
+  </body>
+</html>

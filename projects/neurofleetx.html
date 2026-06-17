@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFleetX AI - Traffic Control Center</title>
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=Fira+Code:wght@400..600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- FontAwesome -->
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+    />
+    <style>
+      :root {
+        --bg-color: #030712;
+        --panel-bg: rgba(17, 24, 39, 0.75);
+        --border-color: rgba(255, 255, 255, 0.08);
+        --primary-color: #3b82f6;
+        --danger-color: #ef4444;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --text-color: #f3f4f6;
+        --text-muted: #9ca3af;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: "Inter", sans-serif;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      header {
+        height: 60px;
+        background: #111827;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 24px;
+        z-index: 1000;
+      }
+
+      .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-icon {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.1);
+          opacity: 0.8;
+        }
+      }
+
+      .logo-section h1 {
+        font-size: 1.1rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+      }
+
+      .logo-section h1 span {
+        color: var(--primary-color);
+      }
+
+      .github-btn {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-color);
+        text-decoration: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--border-color);
+        transition: background-color 0.2s;
+      }
+
+      .github-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .dashboard-layout {
+        flex: 1;
+        display: flex;
+        position: relative;
+      }
+
+      /* Map Container */
+      #map {
+        flex: 1;
+        height: 100%;
+        background-color: #0b0f19;
+      }
+
+      /* Applying gorgeous dark theme invert to OpenStreetMap tiles */
+      .leaflet-tile-container {
+        filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+      }
+
+      .leaflet-bar {
+        border: 1px solid var(--border-color) !important;
+        box-shadow: none !important;
+      }
+
+      .leaflet-bar a {
+        background-color: #111827 !important;
+        color: var(--text-color) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+      }
+
+      .leaflet-bar a:hover {
+        background-color: #1f2937 !important;
+      }
+
+      /* Sidebar Panels */
+      .side-panel {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 320px;
+        background: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        z-index: 1000;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .right-panel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 320px;
+        background: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        z-index: 1000;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .panel-section-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--primary-color);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-color);
+        padding: 12px;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .stat-val {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #fff;
+      }
+
+      .stat-label {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+
+      /* Terminal Log section */
+      .ai-logs {
+        font-family: "Fira Code", monospace;
+        font-size: 0.72rem;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 10px;
+        height: 120px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        color: var(--success-color);
+      }
+
+      .log-entry {
+        line-height: 1.4;
+      }
+
+      .log-time {
+        color: var(--primary-color);
+      }
+
+      /* Custom Marker Styles */
+      .custom-marker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary-color);
+        color: #fff;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 10px var(--primary-color);
+      }
+
+      .custom-marker.incident {
+        background: var(--danger-color);
+        box-shadow: 0 0 12px var(--danger-color);
+        animation: pulse-danger 1.5s infinite;
+      }
+
+      @keyframes pulse-danger {
+        0%,
+        100% {
+          box-shadow: 0 0 8px var(--danger-color);
+        }
+        50% {
+          box-shadow: 0 0 16px var(--danger-color);
+        }
+      }
+
+      /* Control Button */
+      .btn-action {
+        width: 100%;
+        background-color: var(--primary-color);
+        color: #fff;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-action:hover {
+        background-color: #2563eb;
+      }
+
+      /* Interactive Congestion Levels list */
+      .road-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .road-item {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.75rem;
+      }
+
+      .road-status {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+
+      .road-status.green {
+        background: var(--success-color);
+        box-shadow: 0 0 6px var(--success-color);
+      }
+
+      .road-status.orange {
+        background: var(--warning-color);
+        box-shadow: 0 0 6px var(--warning-color);
+      }
+
+      .road-status.red {
+        background: var(--danger-color);
+        box-shadow: 0 0 6px var(--danger-color);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo-section">
+        <i class="fas fa-satellite-dish logo-icon"></i>
+        <h1>Neuro<span>FleetX</span></h1>
+      </div>
+      <a
+        href="https://github.com/MANOJ7263/NeuroFleetX-AI-Powered-Urban-Fleet-and-Traffic-Intelligence"
+        target="_blank"
+        class="github-btn"
+      >
+        <i class="fab fa-github"></i> View Repository
+      </a>
+    </header>
+
+    <div class="dashboard-layout">
+      <!-- Sidebar Panels overlaying the Leaflet Map -->
+      <div class="side-panel">
+        <div>
+          <div class="panel-section-title">Fleet Monitoring</div>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <span class="stat-val" id="activeFleet">8 / 12</span>
+              <span class="stat-label">Active Vehicles</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-val" id="avgSpeed">38 km/h</span>
+              <span class="stat-label">Average Speed</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-val" id="co2Savings">142.5 kg</span>
+              <span class="stat-label">CO2 Prevented</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-val">98.2%</span>
+              <span class="stat-label">SLA Rate</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel-section-title">AI Optimizations</div>
+          <button class="btn-action" id="triggerReRouteBtn">
+            <i class="fas fa-project-diagram"></i> Recalculate AI Routes
+          </button>
+        </div>
+
+        <div>
+          <div class="panel-section-title">Traffic Logs</div>
+          <div class="ai-logs" id="logStream">
+            <div class="log-entry">
+              <span class="log-time">[16:20:01]</span> System initialized.
+            </div>
+            <div class="log-entry">
+              <span class="log-time">[16:20:05]</span> AI Model v4.2 loaded.
+            </div>
+            <div class="log-entry">
+              <span class="log-time">[16:20:10]</span> Traffic stats updated.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-panel">
+        <div>
+          <div class="panel-section-title">Key Congestion Zones</div>
+          <div class="road-list">
+            <div class="road-item">
+              <span>Avinashi Road</span>
+              <div class="road-status red"></div>
+            </div>
+            <div class="road-item">
+              <span>Gandhipuram Flyover</span>
+              <div class="road-status orange"></div>
+            </div>
+            <div class="road-item">
+              <span>Trichy Road</span>
+              <div class="road-status green"></div>
+            </div>
+            <div class="road-item">
+              <span>Sathy Road</span>
+              <div class="road-status green"></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel-section-title">AI Congestion Forecast</div>
+          <div
+            style="
+              font-size: 0.75rem;
+              color: var(--text-muted);
+              line-height: 1.4;
+            "
+          >
+            AI predicts a <strong>24% surge</strong> in Avinashi Road traffic
+            peak flow in approximately <strong>25 minutes</strong>. Automatic
+            dispatching of backup route parameters is recommended.
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaflet Map Container -->
+      <div id="map"></div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script>
+      // Initialize map, centering on Coimbatore (10.98, 76.96)
+      const map = L.map("map", {
+        zoomControl: false,
+        attributionControl: false,
+      }).setView([10.985, 76.965], 13);
+
+      // Add a customized dark tile layer using standard openstreetmap
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+      }).addTo(map);
+
+      // Custom Zoom control positioning
+      L.control.zoom({ position: "bottomright" }).addTo(map);
+
+      // AI Log list controller
+      const logStream = document.getElementById("logStream");
+      function addLog(text) {
+        const time = new Date().toTimeString().split(" ")[0];
+        const log = document.createElement("div");
+        log.className = "log-entry";
+        log.innerHTML = `<span class="log-time">[${time}]</span> ${text}`;
+        logStream.appendChild(log);
+        logStream.scrollTop = logStream.scrollHeight;
+      }
+
+      // Add mock fleet markers
+      const fleet = [
+        {
+          id: 1,
+          name: "Fleet #12",
+          coords: [10.988, 76.958],
+          status: "moving",
+        },
+        { id: 2, name: "Fleet #3", coords: [10.995, 76.975], status: "moving" },
+        {
+          id: 3,
+          name: "Fleet #8",
+          coords: [10.975, 76.955],
+          status: "stopped",
+        },
+        {
+          id: 4,
+          name: "Fleet #15",
+          coords: [10.982, 76.982],
+          status: "moving",
+        },
+      ];
+
+      const markers = [];
+      fleet.forEach((f) => {
+        const icon = L.divIcon({
+          className: "custom-marker",
+          html: `<i class="fas fa-truck-moving" style="font-size: 10px;"></i>`,
+          iconSize: [24, 24],
+        });
+        const marker = L.marker(f.coords, { icon: icon })
+          .addTo(map)
+          .bindPopup(
+            `<strong>${f.name}</strong><br>Status: ${f.status}<br>Speed: 42 km/h`,
+          );
+        markers.push({ id: f.id, marker: marker, coords: f.coords });
+      });
+
+      // Add a mock incident marker (Heavy Congestion / Accident)
+      const incidentIcon = L.divIcon({
+        className: "custom-marker incident",
+        html: `<i class="fas fa-exclamation-triangle" style="font-size: 10px;"></i>`,
+        iconSize: [24, 24],
+      });
+      L.marker([10.991, 76.969], { icon: incidentIcon })
+        .addTo(map)
+        .bindPopup(
+          "<strong>AI Alert</strong><br>Heavy Congestion at Avinashi Road intersections.",
+        );
+
+      // Add polylines representing traffic flows
+      const clearRoute = L.polyline(
+        [
+          [10.975, 76.955],
+          [10.982, 76.965],
+          [10.988, 76.958],
+        ],
+        { color: "#10b981", weight: 6, opacity: 0.8 },
+      ).addTo(map);
+
+      const heavyCongestionRoute = L.polyline(
+        [
+          [10.988, 76.958],
+          [10.995, 76.975],
+          [10.991, 76.969],
+        ],
+        { color: "#ef4444", weight: 6, opacity: 0.8 },
+      ).addTo(map);
+
+      // Re-route simulator
+      const triggerBtn = document.getElementById("triggerReRouteBtn");
+      triggerBtn.addEventListener("click", () => {
+        triggerBtn.disabled = true;
+        triggerBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Re-routing...';
+        addLog("AI: Analysing alternative routing coordinates...");
+
+        setTimeout(() => {
+          // Change route colors and simulate rerouting
+          heavyCongestionRoute.setStyle({ color: "#f59e0b" }); // Changes from red to warning orange
+          addLog("AI: Rerouted Fleet #12 to escape Avinashi Road blockages.");
+          addLog(
+            "AI: Delay reduced by 8.4 minutes across Active Fleet.",
+            "output-success",
+          );
+
+          // Animate Fleet #12 moving slightly
+          const markerObj = markers.find((m) => m.id === 1);
+          if (markerObj) {
+            markerObj.marker.setLatLng([10.982, 76.965]);
+            map.panTo([10.982, 76.965]);
+          }
+
+          // Update stats counters dynamically
+          document.getElementById("avgSpeed").textContent = "44 km/h";
+          document.getElementById("co2Savings").textContent = "158.2 kg";
+
+          triggerBtn.disabled = false;
+          triggerBtn.innerHTML =
+            '<i class="fas fa-project-diagram"></i> Recalculate AI Routes';
+        }, 1500);
+      });
+
+      // Simple periodic coordinate update to simulate moving fleet
+      setInterval(() => {
+        markers.forEach((m) => {
+          if (m.id !== 1) {
+            // Skip #12 which we manual animate
+            const latOffset = (Math.random() - 0.5) * 0.001;
+            const lngOffset = (Math.random() - 0.5) * 0.001;
+            m.coords[0] += latOffset;
+            m.coords[1] += lngOffset;
+            m.marker.setLatLng(m.coords);
+          }
+        });
+        if (Math.random() > 0.6) {
+          const fleetNo = Math.floor(Math.random() * fleet.length) + 1;
+          addLog(
+            `Fleet #${fleetNo} speed logged at ${Math.floor(30 + Math.random() * 20)} km/h`,
+          );
+        }
+      }, 5000);
+    </script>
+  </body>
+</html>
