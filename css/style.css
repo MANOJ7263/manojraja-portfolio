@@ -389,13 +389,16 @@
 }
 
 .portfolio-content .portfolio-item .portfolio-img .portfolio-img-inner {
-  visibility: hidden;
-  transition: 0.5s;
+  visibility: visible;
+  transition: all 0.3s ease-in-out;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .portfolio-content .portfolio-item:hover .portfolio-img .portfolio-img-inner {
-  visibility: visible;
-  transform: rotate(-6deg);
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 /*** Portfolio End ***/
 
