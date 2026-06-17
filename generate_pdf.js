@@ -32,7 +32,7 @@ function generateResume() {
     .fontSize(8.5)
     .text(
       "Address: 1/86-5, Sowmiyanarayanapuram, Pudukattambur, Tirupathur, Sivaganaga, Tamil Nadu - 630211.",
-      { align: "center" }
+      { align: "center" },
     );
 
   doc.moveDown(0.15);
@@ -86,7 +86,7 @@ function generateResume() {
     .fontSize(9.5)
     .text(
       "Motivated and detail-oriented B.Tech Artificial Intelligence and Data Science graduate (2026) with strong knowledge of Core Java, Object-Oriented Programming, SQL, JDBC, and web technologies including HTML, CSS, and JavaScript. Hands-on experience in developing academic and internship projects using Java, MySQL, Spring Boot, and REST APIs. Passionate about software development, problem-solving, and continuous learning, seeking an entry-level Software Engineer or Java Developer role to contribute technical skills and grow within a dynamic organization.",
-      { align: "justify", lineGap: 1.5 }
+      { align: "justify", lineGap: 1.5 },
     );
   doc.moveDown(0.8);
 
@@ -183,11 +183,15 @@ function generateResume() {
     doc.moveDown(0.5);
   }
 
-  drawProject("NeuroFleetX - AI-Driven Urban Mobility System", "Java, Spring Boot, MySQL, REST APIs, JWT", [
-    "Developed an AI-powered urban mobility platform with fleet management, booking management, and real-time tracking.",
-    "Implemented role-based authentication and secure API access using Spring Security and JWT.",
-    "Integrated intelligent route optimization and predictive maintenance features.",
-  ]);
+  drawProject(
+    "NeuroFleetX - AI-Driven Urban Mobility System",
+    "Java, Spring Boot, MySQL, REST APIs, JWT",
+    [
+      "Developed an AI-powered urban mobility platform with fleet management, booking management, and real-time tracking.",
+      "Implemented role-based authentication and secure API access using Spring Security and JWT.",
+      "Integrated intelligent route optimization and predictive maintenance features.",
+    ],
+  );
 
   drawProject("Supermarket Billing System", "Java, MySQL, JDBC", [
     "Developed a desktop-based billing application for managing product sales and inventory.",
@@ -259,7 +263,7 @@ function generateResume() {
     .fontSize(8.5)
     .text(
       "I hereby declare that the information provided above is true and correct to the best of my knowledge and belief. I understand that any misrepresentation or false information may lead to the cancellation of my candidature.",
-      { align: "justify", lineGap: 1.5 }
+      { align: "justify", lineGap: 1.5 },
     );
 
   doc.moveDown(0.6);
